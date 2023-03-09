@@ -35,7 +35,9 @@ class ViewController: UIViewController {
             
             label.textColor = UIColor(red: 102.0/255, green: 117.0/255, blue: 127.0/255, alpha: 1)
             label.hashtagColor = UIColor(red: 85.0/255, green: 172.0/255, blue: 238.0/255, alpha: 1)
+            label.hashtagUnderLineStyle = .single
             label.mentionColor = UIColor(red: 238.0/255, green: 85.0/255, blue: 96.0/255, alpha: 1)
+            label.mentionUnderLineStyle = .double
             label.URLColor = UIColor(red: 85.0/255, green: 238.0/255, blue: 151.0/255, alpha: 1)
             label.URLSelectedColor = UIColor(red: 82.0/255, green: 190.0/255, blue: 41.0/255, alpha: 1)
 
@@ -47,8 +49,10 @@ class ViewController: UIViewController {
 
             label.customColor[customType] = UIColor.purple
             label.customSelectedColor[customType] = UIColor.green
+            label.customUnderLineStyle[customType] = []
             label.customColor[customType2] = UIColor.magenta
             label.customSelectedColor[customType2] = UIColor.green
+            label.customUnderLineStyle[customType2] = NSUnderlineStyle(rawValue: NSUnderlineStyle.single.rawValue | NSUnderlineStyle.patternDot.rawValue)
             
             label.configureLinkAttribute = { (type, attributes, isSelected) in
                 var atts = attributes

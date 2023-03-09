@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-public protocol ActiveLabelDelegate: class {
+public protocol ActiveLabelDelegate: AnyObject {
     func didSelect(_ text: String, type: ActiveType)
 }
 
@@ -30,36 +30,63 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
     @IBInspectable open var mentionColor: UIColor = .blue {
         didSet { updateTextStorage(parseText: false) }
     }
+    
     @IBInspectable open var mentionSelectedColor: UIColor? {
         didSet { updateTextStorage(parseText: false) }
     }
+    
+    open var mentionUnderLineStyle: NSUnderlineStyle = [] {
+        didSet { updateTextStorage(parseText: false) }
+    }
+    
     @IBInspectable open var hashtagColor: UIColor = .blue {
         didSet { updateTextStorage(parseText: false) }
     }
+    
     @IBInspectable open var hashtagSelectedColor: UIColor? {
         didSet { updateTextStorage(parseText: false) }
     }
+    
+    open var hashtagUnderLineStyle: NSUnderlineStyle = [] {
+        didSet { updateTextStorage(parseText: false) }
+    }
+    
     @IBInspectable open var URLColor: UIColor = .blue {
         didSet { updateTextStorage(parseText: false) }
     }
+    
     @IBInspectable open var URLSelectedColor: UIColor? {
         didSet { updateTextStorage(parseText: false) }
     }
+    
+    open var URLUnderLineStyle: NSUnderlineStyle = [] {
+        didSet { updateTextStorage(parseText: false) }
+    }
+    
     open var customColor: [ActiveType : UIColor] = [:] {
         didSet { updateTextStorage(parseText: false) }
     }
+    
     open var customSelectedColor: [ActiveType : UIColor] = [:] {
         didSet { updateTextStorage(parseText: false) }
     }
+    
+    open var customUnderLineStyle: [ActiveType : NSUnderlineStyle] = [:] {
+        didSet { updateTextStorage(parseText: false) }
+    }
+    
     @IBInspectable public var lineSpacing: CGFloat = 0 {
         didSet { updateTextStorage(parseText: false) }
     }
+    
     @IBInspectable public var minimumLineHeight: CGFloat = 0 {
         didSet { updateTextStorage(parseText: false) }
     }
+    
     @IBInspectable public var highlightFontName: String? = nil {
         didSet { updateTextStorage(parseText: false) }
     }
+    
     public var highlightFontSize: CGFloat? = nil {
         didSet { updateTextStorage(parseText: false) }
     }
@@ -187,11 +214,9 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
     // MARK: - Auto layout
     
     open override var intrinsicContentSize: CGSize {
-        guard let text = text, !text.isEmpty else {
-            return .zero
-        }
-
-        textContainer.size = CGSize(width: self.preferredMaxLayoutWidth, height: CGFloat.greatestFiniteMagnitude)
+        guard let text = text, !text.isEmpty else { return .zero }
+        
+        textContainer.size = CGSize(width: preferredMaxLayoutWidth, height: CGFloat.greatestFiniteMagnitude)
         let size = layoutManager.usedRect(for: textContainer)
         return CGSize(width: ceil(size.width), height: ceil(size.height))
     }
@@ -226,7 +251,8 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
             }
             
             let when = DispatchTime.now() + Double(Int64(0.25 * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)
-            DispatchQueue.main.asyncAfter(deadline: when) {
+            DispatchQueue.main.asyncAfter(deadline: when) { [weak self] in
+                guard let self = self else { return }
                 self.updateAttributesWhenSelected(false)
                 self.selectedElement = nil
             }
@@ -328,11 +354,18 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
         for (type, elements) in activeElements {
             
             switch type {
-            case .mention: attributes[NSAttributedString.Key.foregroundColor] = mentionColor
-            case .hashtag: attributes[NSAttributedString.Key.foregroundColor] = hashtagColor
-            case .url: attributes[NSAttributedString.Key.foregroundColor] = URLColor
-            case .custom: attributes[NSAttributedString.Key.foregroundColor] = customColor[type] ?? defaultCustomColor
-            case .email: attributes[NSAttributedString.Key.foregroundColor] = URLColor
+            case .mention:
+                attributes[NSAttributedString.Key.foregroundColor] = mentionColor
+                attributes[NSAttributedString.Key.underlineStyle] = mentionUnderLineStyle.rawValue
+            case .hashtag:
+                attributes[NSAttributedString.Key.foregroundColor] = hashtagColor
+                attributes[NSAttributedString.Key.underlineStyle] = hashtagUnderLineStyle.rawValue
+            case .url, .email:
+                attributes[NSAttributedString.Key.foregroundColor] = URLColor
+                attributes[NSAttributedString.Key.underlineStyle] = URLUnderLineStyle.rawValue
+            case .custom:
+                attributes[NSAttributedString.Key.foregroundColor] = customColor[type] ?? defaultCustomColor
+                attributes[NSAttributedString.Key.underlineStyle] = customUnderLineStyle[type]?.rawValue
             }
             
             if let highlightFont = hightlightFont {
@@ -391,7 +424,7 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
         paragraphStyle.lineBreakMode = NSLineBreakMode.byWordWrapping
         paragraphStyle.alignment = textAlignment
         paragraphStyle.lineSpacing = lineSpacing
-        paragraphStyle.minimumLineHeight = minimumLineHeight > 0 ? minimumLineHeight: self.font.pointSize * 1.14
+        paragraphStyle.minimumLineHeight = minimumLineHeight > 0 ? minimumLineHeight: font.pointSize * 1.14
         attributes[NSAttributedString.Key.paragraphStyle] = paragraphStyle
         mutAttrString.setAttributes(attributes, range: range)
         
