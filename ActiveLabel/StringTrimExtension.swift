@@ -11,6 +11,6 @@ import Foundation
 extension String {
 
     func trim(to maximumCharacters: Int) -> String {
-        return "\([..<index(startIndex, offsetBy: maximumCharacters)])" + "..."
+        return "\(self[..<index(startIndex, offsetBy: maximumCharacters)])" + "..."
     }
 }
